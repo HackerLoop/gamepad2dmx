@@ -1,0 +1,27 @@
+{
+  "name": "gamepad2dmx",
+  "version": "1.0.0",
+  "description": "gamepad to DMX",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "nodemon main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Jorand",
+  "license": "MIT",
+  "homepage": "",
+  "dependencies": {
+    "dmx": "^0.2.4",
+    "express": "^4.17.1",
+    "ip": "^1.1.5",
+    "node-gamepad": "^0.1.15",
+    "node-hid": "^1.1.0",
+    "open": "^7.0.0",
+    "ws": "^7.2.1"
+  },
+  "devDependencies": {}
+}
