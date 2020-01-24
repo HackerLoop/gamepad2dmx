@@ -20,6 +20,10 @@ npm start
 
 ## Environment dev
 
+- Tomshine DMX-512 80W Lyre LED
+- Enttec USB DMX Pro
+- Nintendo Switch Joy-Con
+
 - macOs Catalina 10.15.2
 - node v12.13.0
 
