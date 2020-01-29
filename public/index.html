@@ -29,10 +29,21 @@
         // }
         var gamepad = navigator.getGamepads()[0];
         if(gamepad){
-          console.log(gamepad.axes);
-          if (websocket.readyState === websocket.OPEN) {
-            websocket.send(JSON.stringify(gamepad.axes));
+          var data = {
+            buttons: [],
+            sticks: []
+          };
+          for(var i=0;i<gamepad.buttons.length;i++) {
+            data.buttons[i] = gamepad.buttons[i].pressed;
           }
+          for(var i=0;i<gamepad.axes.length; i+=2) {
+            data.sticks[i] = [gamepad.axes[i], gamepad.axes[i+1]]
+          }
+          console.log(data);
+          if (websocket.readyState === websocket.OPEN) {
+            websocket.send(JSON.stringify(data));
+          }
+
         }
     }
     window.requestAnimationFrame(runAnimation);

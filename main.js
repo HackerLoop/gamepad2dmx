@@ -2,6 +2,7 @@
 /* SERVER */
 var express = require('express'),
     open = require('open'),
+    request = require('request'),
     app = express(),
     port = process.env["PORT"] || 3000,
     server = app.listen(port);
@@ -12,6 +13,9 @@ var localIP = require('ip').address();
 console.log(`listening to server on: http://${localIP}:${port}`);
 open(`http://${localIP}:${port}`);
 
+app.get('/fire', function (req, res) {
+  res.status(500).send('🔥');
+});
 
 /* DMX */
 const DMX = require('dmx');
@@ -53,9 +57,16 @@ wss.on('connection', function(ws,req) {
 
       try {
         var data = JSON.parse(message);
-        var x = parseInt(map(data[0], -1, 1, 0, 255)),
-            y = parseInt(map(data[1], -1, 1, 0, 255));
-        console.log(x, y);
+        //console.log(data);
+        var stick = data.sticks[0];
+        var x = parseInt(map(stick[0], -1, 1, 0, 255)),
+            y = parseInt(map(stick[1], -1, 1, 0, 255));
+        //console.log(x, y);
+        var button = data.buttons[4]; //button 5
+        if (button) {
+          //console.log("fire");
+          fire();
+        }
       } catch (e) {
         // not json
         var x = 127,
@@ -75,41 +86,9 @@ function map(value, in_min, in_max, out_min, out_max) {
   return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-/* GAMEPAD */
-
-var JoyCon = {
-  R: {
-    vendorId: 1406,
-    productId: 8199
-  },
-  L: {
-    vendorId: 1406,
-    productId: 8198
-  }
+function fire() {
+  request(`http://${localIP}:${port}/fire`, { json: true }, (err, res, body) => {
+    if (err) { return console.log(err); }
+    console.log(body);
+  });
 }
-
-var HID = require('node-hid');
-var devices = HID.devices();
-
-// List devices
-//console.log(HID.devices());
-
-// var hid = new HID.HID(vendorId, productId);
-// hid.on("data", function(data) {
-//   console.log(data);
-// });
-
-// var GamePad = require('node-gamepad');
-// var controller = new GamePad( 'nintendo/joycon', {
-//   vendorID: 1406,
-//   productID: 8198
-// } );
-// controller.connect();
-//
-// controller.on('left:move', function(data) {
-//   console.log( 'move', data );
-// });
-// controller.on('down:press', function() {
-//   console.log( 'down' );
-// });
-/**/
