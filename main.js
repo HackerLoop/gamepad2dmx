@@ -24,9 +24,11 @@ const animation = dmx.animation;
 
 const universe = dmx.addUniverse('demo', 'enttec-usb-dmx-pro', '/dev/tty.usbserial-EN275366')
 
-// channel 1 & 3
-// universe.update({1: 250, 3: 250});
+// set start position channel 1 & 3
+//universe.update({1: 250, 3: 250});
 
+//set speed
+universe.update({5: 90});
 
 /* WEBSOCKET */
 const WebSocket = require('ws');
@@ -59,8 +61,8 @@ wss.on('connection', function(ws,req) {
         var data = JSON.parse(message);
         //console.log(data);
         var stick = data.sticks[0];
-        var x = parseInt(map(stick[0], -1, 1, 0, 255)),
-            y = parseInt(map(stick[1], -1, 1, 0, 255));
+        var x = parseInt(map(stick[1], -1, 1, 0, 255)),
+            y = parseInt(map(stick[0], -1, 1, 255, 0));
         //console.log(x, y);
         var button = data.buttons[4]; //button 5
         if (button) {
