@@ -89,7 +89,7 @@ function map(value, in_min, in_max, out_min, out_max) {
 }
 
 function fire() {
-  request(`http://${localIP}:${port}/fire`, { json: true }, (err, res, body) => {
+  request(`https://hackerloop.com/`, (err, res, body) => {
     if (err) { return console.log(err); }
     console.log(body);
   });
