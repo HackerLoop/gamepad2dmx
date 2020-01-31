@@ -11,7 +11,7 @@ app.use(express.static('public'));
 
 var localIP = require('ip').address();
 console.log(`listening to server on: http://${localIP}:${port}`);
-open(`http://${localIP}:${port}`);
+//open(`http://${localIP}:${port}`);
 
 app.get('/fire', function (req, res) {
   res.status(500).send('🔥');
@@ -37,6 +37,7 @@ const wss = new WebSocket.Server({ server });
 var last_state = false;
 
 wss.on('connection', function(ws,req) {
+  //console.log(ws._socket.address(), ws.protocol);
 
   //connection is up, let's add a simple simple event
   ws.on('message', function(message) {
@@ -70,7 +71,7 @@ wss.on('connection', function(ws,req) {
         if (button == true) {
           if (button != last_state) {
             //console.log("fire");
-            console.log(button, last_state);
+            //console.log(button, last_state);
             fire();
             last_state = button;
           }
@@ -83,6 +84,7 @@ wss.on('connection', function(ws,req) {
         // not json
         var x = 127,
             y = 127;
+        console.log(message);
       }
 
       universe.update({1: x, 3: y});
@@ -99,7 +101,15 @@ function map(value, in_min, in_max, out_min, out_max) {
 }
 
 function fire() {
-  console.log("send");
+  console.log("send ws");
+  wss.clients.forEach(client => {
+    //console.log(client);
+    client.send(`FIRE`);
+  });
+}
+
+function fireHTTP() {
+  console.log("send HTTP");
   request(`http://192.168.1.40:80/fire`, (err, res, body) => {
     if (err) { return console.log(err); }
     console.log(body);
