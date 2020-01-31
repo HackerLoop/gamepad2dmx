@@ -89,7 +89,8 @@ function map(value, in_min, in_max, out_min, out_max) {
 }
 
 function fire() {
-  request(`https://hackerloop.com/`, (err, res, body) => {
+  console.log("send");
+  request(`http://192.168.1.40/fire`, (err, res, body) => {
     if (err) { return console.log(err); }
     console.log(body);
   });
