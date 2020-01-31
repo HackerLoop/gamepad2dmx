@@ -34,6 +34,8 @@ universe.update({5: 90});
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ server });
 
+var last_state = false;
+
 wss.on('connection', function(ws,req) {
 
   //connection is up, let's add a simple simple event
@@ -65,10 +67,18 @@ wss.on('connection', function(ws,req) {
             y = parseInt(map(stick[0], -1, 1, 255, 0));
         //console.log(x, y);
         var button = data.buttons[4]; //button 5
-        if (button) {
-          //console.log("fire");
-          fire();
+        if (button == true) {
+          if (button != last_state) {
+            //console.log("fire");
+            console.log(button, last_state);
+            fire();
+            last_state = button;
+          }
         }
+        else {
+          last_state = false;
+        }
+
       } catch (e) {
         // not json
         var x = 127,
