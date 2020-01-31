@@ -10,9 +10,10 @@
 #include <ESP8266WiFiMulti.h>
 #include <WebSocketsClient.h>
 #include <Hash.h>
+//#include "config.h"
 
-const char* ssid = "SSID";
-const char* password = "password";
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
@@ -81,7 +82,8 @@ void setup() {
 	USE_SERIAL.begin(115200);
 
   pinMode(triggerPin, OUTPUT); 
-
+  digitalWrite(triggerPin, HIGH);
+  
 	//Serial.setDebugOutput(true);
 	USE_SERIAL.setDebugOutput(true);
 
