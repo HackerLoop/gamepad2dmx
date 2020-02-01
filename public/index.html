@@ -49,11 +49,12 @@
     window.requestAnimationFrame(runAnimation);
 
     /* WEBSOCKET */
-    var wsUri = "ws://192.168.1.13:3000";
+    var wsUri = "";
     var output;
 
-    function init()
+    function init(ip)
     {
+      wsUri = "ws://"+ip
       output = document.getElementById("output");
       writeToScreen("URL: "+wsUri);
       testWebSocket();
@@ -105,7 +106,22 @@
       output.appendChild(pre);
     }
 
-    window.addEventListener("load", init, false);
+    /* HTTP GET ws ip */
+    function httpGetAsync(theUrl, callback) {
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = function() {
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+              callback(xmlHttp.responseText);
+      }
+      xmlHttp.open("GET", theUrl, true); // true for asynchronous
+      xmlHttp.send(null);
+    }
+
+    window.addEventListener("load", function() {
+      httpGetAsync("/handshake", function(message) {
+        init(message);
+      });
+    }, false);
 
   </script>
 

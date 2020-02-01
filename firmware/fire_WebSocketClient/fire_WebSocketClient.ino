@@ -1,16 +1,16 @@
 /*
- * WebSocketClient.ino
- *
- *  Created on: 24.05.2015
- *
+ * WebSocket
  */
-
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <WebSocketsClient.h>
 #include <Hash.h>
-//#include "config.h"
+#include "config.h"
+
+#define WS_HOST "192.168.1.13"
+#define WS_PORT 3000
+#define WS_PATH "/"
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
@@ -105,7 +105,7 @@ void setup() {
 	}
 
 	// server address, port and URL
-	webSocket.begin("192.168.1.13", 3000, "/");
+	webSocket.begin(WS_HOST, WS_PORT, WS_PATH);
 
 	// event handler
 	webSocket.onEvent(webSocketEvent);

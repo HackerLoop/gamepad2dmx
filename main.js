@@ -13,8 +13,12 @@ var localIP = require('ip').address();
 console.log(`listening to server on: http://${localIP}:${port}`);
 //open(`http://${localIP}:${port}`);
 
+app.get("/handshake", function(req, res){
+  res.status(200).send(`${localIP}:${port}`);
+});
+
 app.get('/fire', function (req, res) {
-  res.status(500).send('🔥');
+  res.status(200).send('🔥');
 });
 
 /* DMX */
@@ -30,7 +34,7 @@ const universe = dmx.addUniverse('demo', 'enttec-usb-dmx-pro', '/dev/tty.usbseri
 //set speed
 universe.update({5: 90});
 
-/* WEBSOCKET */
+/* WEBSOCKET SERVER */
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ server });
 
