@@ -14,6 +14,8 @@ npm i
 npm start
 ```
 
+Start with specific config: `CONFIG=1 node main.js`
+
 ## Modules
 
 - [dmx](https://github.com/node-dmx/dmx)
@@ -21,7 +23,7 @@ npm start
 ## Environment dev
 
 - Tomshine DMX-512 80W Lyre LED
-- Enttec USB DMX Pro
+- Enttec USB DMX Pro | USB to DMX RS485 Adapter
 - Nintendo Switch Joy-Con
 
 - macOs Catalina 10.15.2

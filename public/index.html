@@ -2,15 +2,19 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>WebSocket HID 2 DMX</title>
+  <title>Gamepad to DMX</title>
 
   <script language="javascript" type="text/javascript">
     /* GAMEPAD API */
+    var gamepadId = null;
     window.addEventListener("gamepadconnected", function(e) {
       console.log("Contrôleur n°%d connecté : %s. %d boutons, %d axes.",
       e.gamepad.index, e.gamepad.id,
       e.gamepad.buttons.length, e.gamepad.axes.length);
       writeToScreen(`GAMEPAD: Contrôleur ${e.gamepad.index} connecté : ${e.gamepad.id}. ${e.gamepad.buttons.length} boutons, ${e.gamepad.axes.length} axes.`);
+      if (gamepadId == null) {
+        gamepadId = e.gamepad.index;
+      }
     });
 
     window.addEventListener("gamepaddisconnected", function(e) {
@@ -19,34 +23,40 @@
       writeToScreen(`GAMEPAD: Contrôleur ${e.gamepad.index} déconnecté: ${e.gamepad.id}`);
     });
 
-    function runAnimation() {
-        window.requestAnimationFrame(runAnimation);
-        // Multi gamepad
-        // for (const gamepad of navigator.getGamepads()) {
-        //   if(gamepad){
-        //     console.log(gamepad);
-        //   }
-        // }
-        var gamepad = navigator.getGamepads()[0];
-        if(gamepad){
-          var data = {
-            buttons: [],
-            sticks: []
-          };
-          for(var i=0;i<gamepad.buttons.length;i++) {
-            data.buttons[i] = gamepad.buttons[i].pressed;
-          }
-          for(var i=0;i<gamepad.axes.length; i+=2) {
-            data.sticks[i] = [gamepad.axes[i], gamepad.axes[i+1]]
-          }
-          console.log(data);
-          if (websocket.readyState === websocket.OPEN) {
-            websocket.send(JSON.stringify(data));
-          }
-
-        }
+    function parseGamepad(gamepad) {
+      var buttons = [];
+      for (var i = 0; i < gamepad.buttons.length; i++) {
+        buttons[i] = gamepad.buttons[i].value;
+      }
+      var result = {
+        id: gamepad.id,
+        axes: gamepad.axes,
+        buttons: buttons,
+        index: gamepad.index
+      };
+      return result;
     }
-    window.requestAnimationFrame(runAnimation);
+
+    function sendData() {
+      // Multi gamepad
+      // for (const gamepad of navigator.getGamepads()) {
+      //   if(gamepad){
+      //     console.log(gamepad);
+      //   }
+      // }
+      if (gamepadId !== null) {
+        var myGamepad = navigator.getGamepads()[gamepadId];
+        if(myGamepad){
+          var gamepad = parseGamepad(myGamepad);
+          if (websocket.readyState === websocket.OPEN) {
+            websocket.send(JSON.stringify({
+              type: "gamepad",
+              gamepad: gamepad
+            }));
+          }
+        }
+      }
+    }
 
     /* WEBSOCKET */
     var wsUri = "";
@@ -58,6 +68,13 @@
       output = document.getElementById("output");
       writeToScreen("URL: "+wsUri);
       testWebSocket();
+      initSliders();
+
+      function runAnimation() {
+        window.requestAnimationFrame(runAnimation);
+        sendData();
+      }
+      window.requestAnimationFrame(runAnimation);
     }
 
     function testWebSocket()
@@ -73,18 +90,32 @@
     {
       writeToScreen("CONNECTED");
       doSend("Client Gamepad connected");
+      updateSliders();
     }
 
     function onClose(evt)
     {
       writeToScreen("DISCONNECTED");
-      setTimeout(testWebSocket, 10000);
+      //setTimeout(testWebSocket, 5000);
+      setTimeout(testWebSocket, 1000);
     }
 
     function onMessage(evt)
     {
-      writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+      try {
+        var message = JSON.parse(evt.data);
+      } catch (e) {
+        var message = null;
+        writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+      }
       // websocket.close();
+      if (message) {
+        var data = message.data;
+        if (JSON.stringify(data)!=JSON.stringify(sliderData)) {
+          sliderData = data;
+          updateSliders();
+        }
+      }
     }
 
     function onError(evt)
@@ -94,8 +125,13 @@
 
     function doSend(message)
     {
-      writeToScreen("SENT: " + message);
-      websocket.send(message);
+      var data = {
+        type: "text",
+        message: message
+      };
+      var dataStr = JSON.stringify(data);
+      writeToScreen("SENT: " + dataStr);
+      websocket.send(dataStr);
     }
 
     function writeToScreen(message)
@@ -110,8 +146,8 @@
     function httpGetAsync(theUrl, callback) {
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.onreadystatechange = function() {
-          if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-              callback(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+          callback(xmlHttp.responseText);
       }
       xmlHttp.open("GET", theUrl, true); // true for asynchronous
       xmlHttp.send(null);
@@ -123,12 +159,120 @@
       });
     }, false);
 
+
+    var sliderData = {
+      "posX": 85,
+      "posY": 20,
+      "speed": 90,
+      "minX": 40,
+      "maxX": 127,
+      "minY": 0,
+      "maxY": 127,
+      "multi": 1
+    }
+
+    function updateSliders() {
+      var sliders = document.getElementsByClassName("slider");
+
+      for (var i = 0; i < sliders.length; i++) {
+        var slider = sliders[i];
+        var output = document.getElementById(slider.id+"-value");
+        output.innerHTML = sliderData[slider.name];
+
+        slider.value = sliderData[slider.name];
+        slider.dispatchEvent(new Event("input"));
+      }
+    }
+
+    function initSliders() {
+      var sliders = document.getElementsByClassName("slider");
+
+      for (var i = 0; i < sliders.length; i++) {
+        var slider = sliders[i];
+        var output = document.getElementById(slider.id+"-value");
+        output.innerHTML = slider.value;
+        // sliderData[slider.name] = parseInt(slider.value);
+        slider.value = sliderData[slider.name];
+
+        slider.oninput = function() {
+          // console.log(this.value);
+          sliderData[this.name] = parseInt(this.value);
+          var output = document.getElementById(this.id+"-value");
+          output.innerHTML = this.value;
+
+          if (websocket.readyState === websocket.OPEN) {
+            websocket.send(JSON.stringify({
+              type: "ui",
+              sliders: sliderData
+            }));
+          }
+        }
+
+      }
+    }
   </script>
 
 </head>
 <body>
 
-  <h2>WebSocket Test</h2>
+  <h2>Gamepad to DMX</h2>
+
+  <div class="slidecontainer">
+    <label for="sliderX">Horizontal rotation:</label>
+    <span id="sliderX-value"></span>
+    <br>
+    <input type="range" min="0" max="255" value="0" class="slider" name="posX" id="sliderX">
+  </div>
+  <div class="slidecontainer">
+    <label for="sliderY">Vertical rotation:</label>
+    <span id="sliderY-value"></span>
+    <br>
+    <input type="range" min="0" max="255" value="0" class="slider" name="posY" id="sliderY">
+  </div>
+  <br>
+  <div class="slidecontainer">
+    <label for="sliderS">Rotation Speed:</label>
+    <input type="range" min="0" max="255" value="0" class="slider" name="speed" id="sliderS">
+    <span id="sliderS-value"></span>
+  </div>
+
+  <br>
+
+  <div class="slidecontainer">
+    <label for="sliderMin">Min X:</label>
+    <input type="range" min="0" max="255" value="0" class="slider" name="minX" id="sliderMin">
+    <span id="sliderMin-value"></span>
+  </div>
+
+  <div class="slidecontainer">
+    <label for="sliderMax">Max X:</label>
+    <input type="range" min="0" max="255" value="0" class="slider" name="maxX" id="sliderMax">
+    <span id="sliderMax-value"></span>
+  </div>
+
+  <br>
+
+  <div class="slidecontainer">
+    <label for="sliderMin2">Min Y:</label>
+    <input type="range" min="0" max="255" value="0" class="slider" name="minY" id="sliderMin2">
+    <span id="sliderMin2-value"></span>
+  </div>
+
+  <div class="slidecontainer">
+    <label for="sliderMax2">Max Y:</label>
+    <input type="range" min="0" max="255" value="0" class="slider" name="maxY" id="sliderMax2">
+    <span id="sliderMax2-value"></span>
+  </div>
+
+  <br>
+
+  <div class="slidecontainer">
+    <label for="sliderMult">Multiplicateur:</label>
+    <input type="range" min="1" max="100" value="0" class="slider" name="multi" id="sliderMult">
+    <span id="sliderMult-value"></span>
+  </div>
+
+  <br>
 
   <div id="output"></div>
 
