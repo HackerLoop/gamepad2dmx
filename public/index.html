@@ -2,7 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Gamepad to DMX</title>
+  <title>Tourelle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style media="screen">
+    /* canvas {
+      transform: rotateY(180deg);
+    } */
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
+  <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
 
   <script language="javascript" type="text/javascript">
     /* GAMEPAD API */
@@ -62,9 +72,9 @@
     var wsUri = "";
     var output;
 
-    function init(ip)
+    function init()
     {
-      wsUri = "ws://"+ip
+      wsUri = "ws://"+location.host
       output = document.getElementById("output");
       writeToScreen("URL: "+wsUri);
       testWebSocket();
@@ -154,9 +164,7 @@
     }
 
     window.addEventListener("load", function() {
-      httpGetAsync("/handshake", function(message) {
-        init(message);
-      });
+      init();
     }, false);
 
 
@@ -212,10 +220,15 @@
     }
   </script>
 
+  <script src="sketch.js"></script>
 </head>
 <body>
 
-  <h2>Gamepad to DMX</h2>
+  <div id="sketch-holder">
+    <!-- Our sketch will go here! -->
+  </div>
+
+  <h2>FaceApi Tourelle</h2>
 
   <div class="slidecontainer">
     <label for="sliderX">Horizontal rotation:</label>

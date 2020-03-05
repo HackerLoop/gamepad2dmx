@@ -1,6 +1,6 @@
-# GamePad to DMX
+# Tourelle with Machine Learning
 
-Node.js example to use a Gamepad to send DMX data.
+
 
 ## How to
 
@@ -14,7 +14,7 @@ npm i
 npm start
 ```
 
-Start with specific config: `CONFIG=1 node main.js`
+Start with specific config: `CONFIG=dev node main.js`
 
 ## Modules
 

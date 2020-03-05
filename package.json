@@ -1,11 +1,11 @@
 {
-  "name": "gamepad2dmx",
+  "name": "mlTourelle",
   "version": "1.0.0",
-  "description": "gamepad to DMX",
+  "description": "tourelle with machine learning",
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
-    "dev": "CONFIG=1 nodemon main.js"
+    "dev": "CONFIG=dev nodemon main.js"
   },
   "repository": {
     "type": "git",
@@ -19,7 +19,9 @@
     "dmx": "^0.2.4",
     "express": "^4.17.1",
     "ip": "^1.1.5",
+    "node-pid-controller": "^1.0.1",
     "open": "^7.0.0",
+    "pid-controller": "^1.0.5",
     "request": "^2.88.0",
     "ws": "^7.2.1"
   },

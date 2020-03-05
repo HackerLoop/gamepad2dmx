@@ -3,68 +3,40 @@
 var express = require('express'),
     open = require('open'),
     request = require('request'),
+    delay = require('delay'),
     app = express(),
     port = process.env["PORT"] || 3000,
-    server = app.listen(port);
+    server = app.listen(port),
+    localIP = require('ip').address();
 
-const delay = require('delay');
+console.log(`listening to server on: http://${localIP}:${port}`);
 
 app.use(express.static('public'));
 
-var localIP = require('ip').address();
-console.log(`listening to server on: http://${localIP}:${port}`);
-//open(`http://${localIP}:${port}`);
+/* DMX */
+const config = process.env.CONFIG == "dev" ?
+  require('./config-dev'):
+  require('./config');
 
-app.get("/handshake", function(req, res){
-  res.status(200).send(`${localIP}:${port}`);
+const DMXController = require('./DMXController');
+
+const movingHead = new DMXController(config.dmx);
+
+movingHead.on('open', function() {
+  console.log('DMXController connected');
+  movingHead.setSpeed(40);
 });
 
-/* DMX */
-const DMX = require('dmx');
-const dmx = new DMX();
-const animation = dmx.animation;
+/* PID */
+let Controller = require('node-pid-controller');
 
-const config = [
-  {
-    universe: {
-      name: 'pro',
-      driver: 'enttec-usb-dmx-pro',
-      id: '/dev/tty.usbserial-EN275366'
-    },
-    x: 1,
-    y: 3,
-    speed: 5
-  },
-  {
-    universe: {
-      name: 'dev',
-      driver: 'enttec-open-usb-dmx',
-      id: '/dev/tty.usbserial-AD0JL34E'
-    },
-    x: 1,
-    y: 3,
-    speed: 9
-  }
-];
-
-var fixture = config[0];
-
-if (process.env.CONFIG) {
-  fixture = config[process.env.CONFIG];
-}
-
-//const universe = dmx.addUniverse('demo', 'enttec-usb-dmx-pro', '/dev/tty.usbserial-EN275366')
-// const universe = dmx.addUniverse('demo', 'enttec-open-usb-dmx', '/dev/tty.usbserial-AD0JL34E')
-const universe = dmx.addUniverse(fixture.universe.name, fixture.universe.driver, fixture.universe.id)
-
-// set start position channel 1 & 3
-//universe.update({1: 250, 3: 250});
-
-//set speed
-//universe.update({5: 90});
-
-//set default pos and speed
-universe.update({[fixture.x]: 85, [fixture.y]: 0, [fixture.speed]: 90});
+let ctr = new Controller({
+  k_p: 0.2,
+  k_i: 0.02,
+  k_d: 0.4,
+  dt: 1
+});
+ctr.setTarget(0);
 
 /* WEBSOCKET SERVER */
 const WebSocket = require('ws');
@@ -104,6 +76,15 @@ wss.on('connection', function(ws,req) {
       case "text":
         console.log(data.message);
         //ws.send(`Hello, you sent -> ${data.message}`);
+        break;
+      case "target":
+        // console.log(data);
+        var target = data.target;
+        let output = target[0];
+        let input  = ctr.update(output);
+        console.log(input);
+        ui.posX -= input/10;
+
         break;
       case "ui":
         // console.log(data);
@@ -152,7 +133,7 @@ wss.on('connection', function(ws,req) {
 
       // console.log(ui.posX, ui.posY);
 
-      universe.update({[fixture.x]: ui.posX, [fixture.y]: ui.posY, [fixture.speed]: ui.speed});
+      movingHead.setPos(ui.posX, ui.posY, ui.speed);
     }
   });
 
