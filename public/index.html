@@ -68,6 +68,21 @@
       }
     }
 
+    var centerActivated = false;
+
+    function toggleCentered() {
+      if (websocket.readyState === websocket.OPEN) {
+        console.log('toggleCentered');
+        websocket.send(JSON.stringify({
+          type: "centered",
+          active: !centerActivated
+        }));
+        centerActivated = !centerActivated;
+        var elem = document.getElementById("centerActivated");
+        elem.innerHTML = centerActivated ? 'Activé' : 'Désactivé';
+      }
+    }
+
     /* WEBSOCKET */
     var wsUri = "";
     var output;
@@ -285,6 +300,10 @@
     <span id="sliderMult-value"></span>
   </div>
 
+  <br>
+
+  <button type="button" name="button" onclick="toggleCentered()">toggleCentered</button>
+  <span id="centerActivated">Désactivé</span>
   <br>
 
   <div id="output"></div>

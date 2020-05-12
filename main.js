@@ -45,6 +45,8 @@ const wss = new WebSocket.Server({ server });
 var ui = {},
     last_speed = 0;
 
+var centered = false;
+
 wss.on('connection', function(ws,req) {
   //console.log(ws._socket.address(), ws.protocol);
 
@@ -90,12 +92,24 @@ wss.on('connection', function(ws,req) {
         // console.log(data);
         ui = data.sliders;
         break;
+      case "centered":
+        console.log(data);
+        centered = data.active;
+        break;
       case "gamepad":
         // console.log(data);
         //ws.send(`Hello, you sent -> ${message}`);
 
-        ui.posX += data.gamepad.axes[1] * ui.multi;
-        ui.posY += data.gamepad.axes[0] * ui.multi;
+        if (centered) {
+          ui.posX = parseInt(map(data.gamepad.axes[1], -1, 1, 0, 255));
+          ui.posY = parseInt(map(data.gamepad.axes[0], -1, 1, 255, 0));
+        }
+        else {
+          ui.posX += data.gamepad.axes[1] * ui.multi;
+          ui.posY += data.gamepad.axes[0] * ui.multi;
+        }
+
+
         // speed = map(Math.abs(data.gamepad.axes[1]), 0, 1, 200, 1);
         updateUi(ws);
 
