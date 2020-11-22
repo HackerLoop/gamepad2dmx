@@ -1,4 +1,4 @@
-# Tourelle with Machine Learning
+# Control dmx pan tilt with joycons
 
 
 
